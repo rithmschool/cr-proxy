@@ -2,18 +2,23 @@
 
 const express = require('express');
 const app = express();
+const cors = require('cors');
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// const schoolRoutes = require('./routes/schools');
-// const blogRoutes = require('./routes/blogs');
+// const schoolRouter = require('./routes/schools');
+// const blogRouter = require('./routes/blogs');
+// const contactRouter = require('./routes/contact');
 
 // add logging system
 
 const morgan = require('morgan');
 app.use(morgan('tiny'));
 
+app.use(cors());
+
+// schoolRouter.use('/:id/contact', contactRouter)
 // app.use('/schools', schoolRoutes);
 // app.use('/blogs', blogRoutes);
 
