@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // const schoolRouter = require('./routes/schools');
-// const blogRouter = require('./routes/blogs');
+const blogRouter = require('./routes/blogs');
 // const contactRouter = require('./routes/contact');
 
 // add logging system
