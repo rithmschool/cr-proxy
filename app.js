@@ -9,7 +9,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // const schoolRouter = require('./routes/schools');
 const blogRoutes = require('./routes/blogs');
-// const contactRouter = require('./routes/contact');
+const contactRouter = require('./routes/contact');
 
 // add logging system
 
@@ -20,6 +20,7 @@ app.use(cors());
 
 // schoolRouter.use('/:id/contact', contactRouter)
 // app.use('/schools', schoolRoutes);
+app.use('/contact',contactRouter)
 app.use('/blog', blogRoutes);
 
 /** 404 handler */
