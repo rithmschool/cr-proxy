@@ -14,7 +14,12 @@
     "cors": "^2.8.5",
     "dotenv": "^6.2.0",
     "express": "^4.16.4",
+<<<<<<< HEAD
     "flatted": "^2.0.0",
     "morgan": "^1.9.1"
+=======
+    "morgan": "^1.9.1",
+    "node-fetch": "^2.3.0"
+>>>>>>> 3034e3be976adc3a8e9ffdef93bd08f323346dbe
   }
 }

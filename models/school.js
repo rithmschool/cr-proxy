@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { BASE_URL } = require('../config');
+const { getAbout } = require('../aboutparser');
 axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
@@ -56,6 +57,7 @@ class School {
       email,
       website,
       about,
+      meta_description,
       review_count,
       banners,
       twitter,
@@ -64,6 +66,9 @@ class School {
       github
     } = response.data.school;
 
+      // parse about and replace here
+      let aboutText = getAbout(about);  
+
     return {
       avg_review_rating,
       slug,
@@ -71,14 +76,15 @@ class School {
       name,
       email,
       website,
-      about,
+      about: aboutText,
+      meta_description,
       review_count,
-      banners,
       twitter,
       facebook,
       blog,
       github,
-      logo_url: response.data.logo
+      logo_url: response.data.logo,
+      banners,
     };
   }
 }
