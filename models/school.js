@@ -1,8 +1,10 @@
 const axios = require('axios');
+const {parse, stringify} = require('flatted');
 const api = axios.create({
   baseURL: 'http://localhost:3000',
   headers: {
-    "Content-Type": 'application/json'
+    "Content-Type": 'application/json',
+    "Accept": 'application/json'
   }
 });
 
@@ -18,8 +20,16 @@ class School {
   }
 
   static async getAll() {
-    const response = await api.get('/schools');
-    console.log(JSON.stringify(response));
+    let response;
+    api.get('/schools').then((resp) => {
+      console.log('raw response', resp)
+      let parsed = parse(resp);
+      console.log('flatted parsed:', parsed)
+      response = parsed;
+    }).catch((err) => {
+      console.log(err);
+    });
+    console.log(response);
     return response;
   }
 
