@@ -7,7 +7,7 @@ const cors = require('cors');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// const schoolRouter = require('./routes/schools');
+const schoolRouter = require('./routes/schools');
 // const blogRouter = require('./routes/blogs');
 // const contactRouter = require('./routes/contact');
 
@@ -19,7 +19,7 @@ app.use(morgan('tiny'));
 app.use(cors());
 
 // schoolRouter.use('/:id/contact', contactRouter)
-// app.use('/schools', schoolRoutes);
+app.use('/schools', schoolRouter);
 // app.use('/blogs', blogRoutes);
 
 /** 404 handler */

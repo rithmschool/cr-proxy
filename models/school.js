@@ -1,4 +1,10 @@
 const axios = require('axios');
+const api = axios.create({
+  baseURL: 'http://localhost:3000',
+  headers: {
+    "Content-Type": 'application/json'
+  }
+});
 
 class School {
   constructor({ name, id, location, logo_url, rating, reviewCount, description }) {
@@ -11,9 +17,13 @@ class School {
     this.description = description;
   }
 
-  static async get(id) {
-    const result = await axios.get('', {id})
+  static async getAll() {
+    const response = await api.get('/schools');
+    console.log(JSON.stringify(response));
+    return response;
   }
 
 
 }
+
+module.exports = School;
