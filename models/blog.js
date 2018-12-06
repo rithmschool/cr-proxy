@@ -1,5 +1,4 @@
-const axios = require('axios');
-const {BASE_URL} = require('../config');
+const CourseReportAPI = require('../helpers/CourseReportAPI');
 
 class Blog {
   constructor(posts) {
@@ -7,13 +6,8 @@ class Blog {
   }
 
   static async getPosts(pageNum = 1) {
-    let response = await axios.get(`${BASE_URL}/blog`, {
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      }
-    });
-    return new Blog(response.data.map(post => new Post(post)));
+    let blogs = await CourseReportAPI.getPosts();
+    return new Blog(blogs.map(post => new Post(post)));
   }
 }
 

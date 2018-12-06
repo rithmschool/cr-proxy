@@ -1,8 +1,5 @@
-const axios = require('axios');
-const { BASE_URL } = require('../config');
 const { getAbout } = require('../aboutparser');
-axios.defaults.headers.common['Accept'] = 'application/json';
-axios.defaults.headers.common['Content-Type'] = 'application/json';
+const CourseReportAPI = require('../helpers/CourseReportAPI');
 
 class School {
   constructor({
@@ -24,8 +21,8 @@ class School {
   }
 
   static async getAll() {
-    let response = await axios.get(`${BASE_URL}/schools`);
-    let schoolsParsed = JSON.parse(response.data.schools);
+    let schools = await CourseReportAPI.getSchools();
+    let schoolsParsed = JSON.parse(schools);
 
     const updatedSchools = schoolsParsed.map(school => {
       let updatedSchool = { ...school };
@@ -49,7 +46,8 @@ class School {
   }
 
   static async get(id) {
-    let response = await axios.get(`${BASE_URL}/schools/${id}`);
+    let schoolData = await CourseReportAPI.getSchool(id);
+
     const {
       avg_review_rating,
       slug,
@@ -64,15 +62,15 @@ class School {
       facebook,
       blog,
       github
-    } = response.data.school;
+    } = schoolData.school;
 
-      // parse about and replace here
-      let aboutText = getAbout(about);  
+    // parse about and replace here
+    let aboutText = getAbout(about);
 
     return {
       avg_review_rating,
       slug,
-      id: response.data.school.id,
+      id: schoolData.school.id,
       name,
       email,
       website,
@@ -83,7 +81,7 @@ class School {
       facebook,
       blog,
       github,
-      logo_url: response.data.logo,
+      logo_url: schoolData.logo,
       banners,
     };
   }

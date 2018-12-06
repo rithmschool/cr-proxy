@@ -24,7 +24,7 @@ app.use('/blog', blogRouter);
 
 /** 404 handler */
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   const err = new Error('Not Found');
   err.status = 404;
 
@@ -34,7 +34,7 @@ app.use(function(req, res, next) {
 
 /** general error handler */
 
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   res.status(err.status || 500);
 
   return res.json({
