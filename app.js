@@ -20,7 +20,7 @@ app.use(cors());
 
 // schoolRouter.use('/:id/contact', contactRouter)
 // app.use('/schools', schoolRoutes);
-app.use('/contact',contactRouter)
+// app.use('/contact',contactRouter)
 app.use('/blog', blogRoutes);
 
 /** 404 handler */
