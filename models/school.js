@@ -1,13 +1,19 @@
-const express = require('express');
-const router = new express.Router();
 const axios = require('axios');
 
-/**
- * GET / Blogs 
- * returns list of blogs
- * (consider pagination)
- */
-router.get('/', async function(req, res, next) {
+class School {
+  constructor({ name, id, location, logo_url, rating, reviewCount, description }) {
+    this.name = name;
+    this.id = id;
+    this.location = location;
+    this.logo_url = logo_url;
+    this.rating = rating;
+    this.reviewCount = reviewCount;
+    this.description = description;
+  }
+
+  static async get(id) {
+    const result = await axios.get('', {id})
+  }
 
 
-});
+}
