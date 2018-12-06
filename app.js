@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const schoolRouter = require('./routes/schools');
-const blogRoutes = require('./routes/blogs');
+const blogRouter = require('./routes/blogs');
 const contactRouter = require('./routes/contact');
 
 // add logging system
@@ -19,8 +19,8 @@ app.use(morgan('tiny'));
 app.use(cors());
 
 schoolRouter.use('/:id/contact', contactRouter)
-app.use('/schools', schoolRoutes);
-app.use('/blog', blogRoutes);
+app.use('/schools', schoolRouter);
+app.use('/blog', blogRouter);
 
 /** 404 handler */
 
