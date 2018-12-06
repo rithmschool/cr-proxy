@@ -1,5 +1,5 @@
 const axios = require('axios');
-const BASE_URL = require('../config');
+const {BASE_URL} = require('../config');
 
 class Blog {
   constructor(posts) {
@@ -7,14 +7,13 @@ class Blog {
   }
 
   static async getPosts(pageNum = 1) {
-    let response = await axios.get(`http://localhost:3000/blog`, {
+    let response = await axios.get(`${BASE_URL}/blog`, {
       headers: {
         "Accept": "application/json",
         "Content-Type": "application/json"
       }
     });
-    let newPosts = [...this.posts, ...response.data];
-    return new Blog(newPosts.map(post => new Post(post)));
+    return new Blog(response.data.map(post => new Post(post)));
   }
 }
 
