@@ -3,13 +3,17 @@ const BASE_URL = require('../config');
 
 class Blog {
   constructor(posts) {
-    this.posts = posts;
+    this.posts = posts || [];
   }
 
   static async getPosts(pageNum = 1) {
-    let posts = await axios.get(`${BASE_URL}/blog`);
-
-    let newPosts = [...this.posts, ...posts.data];
+    let response = await axios.get(`http://localhost:3000/blog`, {
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json"
+      }
+    });
+    let newPosts = [...this.posts, ...response.data];
     return new Blog(newPosts.map(post => new Post(post)));
   }
 }
