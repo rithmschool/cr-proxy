@@ -1,15 +1,17 @@
 const axios = require('axios');
-const {parse, stringify} = require('flatted');
-const api = axios.create({
-  baseURL: 'http://localhost:3000',
-  headers: {
-    "Content-Type": 'application/json',
-    "Accept": 'application/json'
-  }
-});
+axios.defaults.headers.common['Accept'] = 'application/json';
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 class School {
-  constructor({ name, id, location, logo_url, rating, reviewCount, description }) {
+  constructor({
+    name,
+    id,
+    location,
+    logo_url,
+    rating,
+    reviewCount,
+    description,
+  }) {
     this.name = name;
     this.id = id;
     this.location = location;
@@ -20,20 +22,10 @@ class School {
   }
 
   static async getAll() {
-    let response;
-    api.get('/schools').then((resp) => {
-      console.log('raw response', resp)
-      let parsed = parse(resp);
-      console.log('flatted parsed:', parsed)
-      response = parsed;
-    }).catch((err) => {
-      console.log(err);
-    });
-    console.log(response);
-    return response;
+    let response = await axios.get('http://localhost:3000/schools');
+    let schoolsParsed = JSON.parse(response.data.schools);
+    return schoolsParsed;
   }
-
-
 }
 
 module.exports = School;

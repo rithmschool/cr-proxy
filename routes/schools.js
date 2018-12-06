@@ -11,6 +11,9 @@ router.get('/', async function(req, res, next) {
   try {
     let schools = await School.getAll();
     console.log(schools);
+    return res.json({
+      schools
+    })
   } catch (err) {
     return next(err);
   }
