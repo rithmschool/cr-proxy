@@ -11,7 +11,7 @@ class School {
     logo_url,
     rating,
     reviewCount,
-    description,
+    description
   }) {
     this.name = name;
     this.id = id;
@@ -27,7 +27,7 @@ class School {
     let schoolsParsed = JSON.parse(response.data.schools);
 
     const updatedSchools = schoolsParsed.map(school => {
-      let updatedSchool = {...school};
+      let updatedSchool = { ...school };
       let cities = school.cities.map(city => {
         return city.name;
       });
@@ -47,11 +47,39 @@ class School {
     return updatedSchools;
   }
 
-
   static async get(id) {
     let response = await axios.get(`${BASE_URL}/schools/${id}`);
+    const {
+      avg_review_rating,
+      slug,
+      name,
+      email,
+      website,
+      about,
+      review_count,
+      banners,
+      twitter,
+      facebook,
+      blog,
+      github
+    } = response.data.school;
 
-    return response.data;
+    return {
+      avg_review_rating,
+      slug,
+      id: response.data.school.id,
+      name,
+      email,
+      website,
+      about,
+      review_count,
+      banners,
+      twitter,
+      facebook,
+      blog,
+      github,
+      logo_url: response.data.logo
+    };
   }
 }
 

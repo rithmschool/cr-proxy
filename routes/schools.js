@@ -3,9 +3,8 @@ const router = new express.Router();
 const School = require('../models/school');
 
 /**
- * GET / Blogs 
- * returns list of blogs
- * (consider pagination)
+ * GET /schools 
+ * returns list of schools
  */
 router.get('/', async function(req, res, next) {
   try {
@@ -19,6 +18,10 @@ router.get('/', async function(req, res, next) {
   }
 });
 
+/**
+ * GET /school/:id
+ * return details about one school
+ */
 router.get('/:id', async function(req, res, next) {
   try {
     let school = await School.get(req.params.id);
