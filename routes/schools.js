@@ -19,4 +19,16 @@ router.get('/', async function(req, res, next) {
   }
 });
 
+router.get('/:id', async function(req, res, next) {
+  try {
+    let school = await School.get(req.params.id);
+    console.log(school);
+    return res.json({
+      school
+    })
+  } catch (err) {
+    return next(err);
+  }
+})
+
 module.exports = router;
