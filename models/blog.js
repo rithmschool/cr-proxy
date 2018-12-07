@@ -1,5 +1,5 @@
 const CourseReportAPI = require('../helpers/CourseReportAPI');
-const { getHeaderImg, stripHTML } = require('../htmlStripper');
+const { getHeaderImg, stripHTML } = require('../helpers/htmlParsers');
 
 class Blog {
   constructor(posts) {

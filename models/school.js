@@ -1,4 +1,4 @@
-const { stripHTML } = require('../htmlStripper');
+const { stripHTML } = require('../helpers/htmlParsers');
 const CourseReportAPI = require('../helpers/CourseReportAPI');
 
 class School {
