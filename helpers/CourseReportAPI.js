@@ -47,7 +47,7 @@ class CourseReportAPI {
   static async getPosts() {
     const res = await this.request(`/blog`);
     console.log('posts response', res);
-    return res;
+    return res.posts;
   }
 }
 

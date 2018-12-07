@@ -1,4 +1,5 @@
 const CourseReportAPI = require('../helpers/CourseReportAPI');
+const { getHeaderImg, stripHTML } = require('../htmlStripper');
 
 class Blog {
   constructor(posts) {
@@ -6,8 +7,20 @@ class Blog {
   }
 
   static async getPosts(pageNum = 1) {
-    let blogs = await CourseReportAPI.getPosts();
-    return new Blog(blogs.map(post => new Post(post)));
+    let posts = await CourseReportAPI.getPosts();
+    let postsParsed = JSON.parse(posts);
+    // get all images out
+    let updatedPosts = postsParsed.map(post => {
+      //pull out header image from about
+      let header_url = getHeaderImg(post.body);
+      let body = stripHTML(post.body);
+
+      let updatedPost = { ...post };
+      updatedPost.body = body;
+      updatedPost.header_url = header_url;
+      return updatedPost;
+    })
+    return new Blog(updatedPosts.map(post => new Post(post)));
   }
 }
 
@@ -26,7 +39,8 @@ class Post {
     sponsorship_expire,
     image_id,
     card_info_id,
-    post_author
+    post_author,
+    header_url,
   }) {
     this.id = id;
     this.title = title;
@@ -42,6 +56,7 @@ class Post {
     this.image_id = image_id;
     this.card_info_id = card_info_id;
     this.post_author = post_author;
+    this.header_url = header_url;
   }
 }
 

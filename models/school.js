@@ -1,4 +1,4 @@
-const { getAbout } = require('../aboutparser');
+const { stripHTML } = require('../htmlStripper');
 const CourseReportAPI = require('../helpers/CourseReportAPI');
 
 class School {
@@ -65,7 +65,7 @@ class School {
     } = schoolData.school;
 
     // parse about and replace here
-    let aboutText = getAbout(about);
+    let aboutText = stripHTML(about);
 
     return {
       avg_review_rating,
