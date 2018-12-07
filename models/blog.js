@@ -14,9 +14,9 @@ class Blog {
       //pull out header image from about
       let header_url = getHeaderImg(post.body);
 
-      // title, author, date created, image, school
-      const { title, post_author, created_at } = post;
+      const { id, title, post_author, created_at } = post;
       const updatedPost = {};
+      updatedPost.id = id;
       updatedPost.title = title;
       updatedPost.created_at = created_at;
       updatedPost.header_url = header_url;
