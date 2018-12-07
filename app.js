@@ -7,9 +7,9 @@ const cors = require('cors');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// const schoolRouter = require('./routes/schools');
-const blogRoutes = require('./routes/blogs');
-// const contactRouter = require('./routes/contact');
+const schoolRouter = require('./routes/schools');
+const blogRouter = require('./routes/blogs');
+const contactRouter = require('./routes/contact');
 
 // add logging system
 
@@ -18,13 +18,13 @@ app.use(morgan('tiny'));
 
 app.use(cors());
 
-// schoolRouter.use('/:id/contact', contactRouter)
-// app.use('/schools', schoolRoutes);
-app.use('/blog', blogRoutes);
+schoolRouter.use('/:id/contact', contactRouter)
+app.use('/schools', schoolRouter);
+app.use('/blog', blogRouter);
 
 /** 404 handler */
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   const err = new Error('Not Found');
   err.status = 404;
 
@@ -34,7 +34,7 @@ app.use(function(req, res, next) {
 
 /** general error handler */
 
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   res.status(err.status || 500);
 
   return res.json({
