@@ -115,10 +115,12 @@ class School {
 
     school.campuses = campuses;
     school.reviews = reviews;
-    school.contact = {
-      name: schoolData.contact.name,
-      email: schoolData.contact.email
-    };
+    if (school.contact) {
+      school.contact = {
+        name: schoolData.contact.name,
+        email: schoolData.contact.email
+      };
+    }
 
     return school;
   }
