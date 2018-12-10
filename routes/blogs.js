@@ -5,26 +5,25 @@ const Blog = require('../models/blog');
 //Get a blog list
 router.get('/', async function(req, res, next) {
   try {
-    const blogList = await Blog.getPosts();
-    return res.json({ blogList });
-  } catch (error) {
-    return next(error);
+    const posts = await Blog.getAll();
+    return res.json({ 
+      posts 
+    });
+  } catch (e) {
+    return next(e);
   }
 });
 
-//Create a new company
-// router.post(
-//   '/',
-//   ensureAdminUser,
-//   validateInput(newCompanySchema),
-//   async function(req, res, next) {
-//     try {
-//       const company = await Company.createCompany(req.body);
-//       return res.json({ company });
-//     } catch (error) {
-//       return next(error);
-//     }
-//   }
-// );
+// Get a single blog details
+router.get('/:post_id', async function(req, res, next) {
+  try {
+    const post = await Blog.get(req.params.post_id);
+    return res.json({
+      post
+    })
+  } catch (e) {
+    return next(e);
+  }
+});
 
 module.exports = router;

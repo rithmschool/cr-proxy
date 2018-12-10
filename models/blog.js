@@ -1,19 +1,43 @@
-const axios = require('axios');
-const {BASE_URL} = require('../config');
+const CourseReportAPI = require('../helpers/CourseReportAPI');
+const { getHeaderImg, stripHTML } = require('../helpers/htmlParsers');
 
 class Blog {
   constructor(posts) {
     this.posts = posts || [];
   }
 
-  static async getPosts(pageNum = 1) {
-    let response = await axios.get(`${BASE_URL}/blog`, {
-      headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-      }
-    });
-    return new Blog(response.data.map(post => new Post(post)));
+  static async getAll(pageNum = 1) {
+    let posts = await CourseReportAPI.getPosts();
+    let postsParsed = JSON.parse(posts);
+    // get all images out
+    let updatedPosts = postsParsed.map(post => {
+      //pull out header image from about
+      let header_url = getHeaderImg(post.body);
+
+      const { id, title, post_author, created_at } = post;
+      const updatedPost = {};
+      updatedPost.id = id;
+      updatedPost.title = title;
+      updatedPost.created_at = created_at;
+      updatedPost.header_url = header_url;
+      updatedPost.author = `${post_author.first_name} ${post_author.last_name}`;
+      return updatedPost;
+    })
+    return updatedPosts;
+  }
+
+  static async get(post_id) {
+    
+    let postData = await CourseReportAPI.getPost(post_id);
+
+    // get image out and strip html from body
+    let post = JSON.parse(postData.post);
+    let header_url = getHeaderImg(post.body);
+    let body = stripHTML(post.body);
+    post.body = body;
+    post.header_url = header_url;
+
+    return new Post(post);
   }
 }
 
@@ -32,7 +56,8 @@ class Post {
     sponsorship_expire,
     image_id,
     card_info_id,
-    post_author
+    post_author,
+    header_url,
   }) {
     this.id = id;
     this.title = title;
@@ -48,6 +73,7 @@ class Post {
     this.image_id = image_id;
     this.card_info_id = card_info_id;
     this.post_author = post_author;
+    this.header_url = header_url;
   }
 }
 
