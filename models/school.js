@@ -103,7 +103,7 @@ class School {
 
     const reviews = schoolData.reviews.map(review => {
       return {
-        id: review.data,
+        id: review.id,
         body: stripHTML(review.body),
         reviewer_name: review.reviewer_name,
         overall_experience_rating: review.overall_experience_rating,
