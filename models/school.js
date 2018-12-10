@@ -84,23 +84,26 @@ class School {
 
     let campuses = JSON.parse(schoolData.campuses);
 
-    campuses = campuses.map(campus => {
+    campuses = campuses.reduce((acc, campus) => {
       return {
-        id: campus.id,
-        name: campus.mailing_city,
-        courses: campus.courses.map(course => {
-          return {
-            id: course.id,
-            name: course.name
-          };
-        })
+        ...acc,
+        [campus.id]: {
+          id: campus.id,
+          name: campus.mailing_city,
+          courses: campus.courses.map(course => {
+            return {
+              id: course.id,
+              name: course.name
+            };
+          })
+        }
       };
-    });
+    }, {});
 
     const reviews = schoolData.reviews.map(review => {
       return {
         id: review.data,
-        body: review.body,
+        body: stripHTML(review.body),
         reviewer_name: review.reviewer_name,
         overall_experience_rating: review.overall_experience_rating,
         course_curriculum_rating: review.course_curriculum_rating,
