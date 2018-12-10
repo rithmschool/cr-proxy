@@ -113,11 +113,12 @@ class School {
         created_at: review.created_at
       };
     });
+    console.log(school.contact);
 
     school.logo = schoolData.logo;
     school.campuses = campuses;
     school.reviews = reviews;
-    if (school.contact) {
+    if (schoolData.contact) {
       school.contact = {
         name: schoolData.contact.name,
         email: schoolData.contact.email
