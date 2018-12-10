@@ -113,6 +113,7 @@ class School {
       };
     });
 
+    school.logo = schoolData.logo;
     school.campuses = campuses;
     school.reviews = reviews;
     if (school.contact) {
