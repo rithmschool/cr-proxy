@@ -85,7 +85,6 @@ class School {
 
     let campuses = JSON.parse(schoolData.campuses);
 
-    console.log(campuses);
     campuses = campuses.reduce((acc, campus) => {
       return {
         ...acc,

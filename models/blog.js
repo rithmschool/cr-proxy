@@ -22,12 +22,11 @@ class Blog {
       updatedPost.header_url = header_url;
       updatedPost.author = `${post_author.first_name} ${post_author.last_name}`;
       return updatedPost;
-    })
+    });
     return updatedPosts;
   }
 
   static async get(post_id) {
-    
     let postData = await CourseReportAPI.getPost(post_id);
 
     // get image out and strip html from body
@@ -36,6 +35,10 @@ class Blog {
     let body = stripHTML(post.body);
     post.body = body;
     post.header_url = header_url;
+    post.author = `${post.post_author.first_name} ${
+      post.post_author.last_name
+    }`;
+    delete post.post_author;
 
     return new Post(post);
   }
@@ -56,8 +59,8 @@ class Post {
     sponsorship_expire,
     image_id,
     card_info_id,
-    post_author,
-    header_url,
+    author,
+    header_url
   }) {
     this.id = id;
     this.title = title;
@@ -72,7 +75,7 @@ class Post {
     this.sponsorship_expire = sponsorship_expire;
     this.image_id = image_id;
     this.card_info_id = card_info_id;
-    this.post_author = post_author;
+    this.author = author;
     this.header_url = header_url;
   }
 }
