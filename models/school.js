@@ -113,7 +113,6 @@ class School {
         created_at: review.created_at
       };
     });
-    console.log(school.contact);
 
     school.logo = schoolData.logo;
     school.campuses = campuses;
