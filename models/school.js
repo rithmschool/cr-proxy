@@ -82,9 +82,40 @@ class School {
       github
     };
 
-    school.campuses = JSON.parse(schoolData.campuses);
-    school.reviews = schoolData.reviews;
-    school.contact = schoolData.contact;
+    let campuses = JSON.parse(schoolData.campuses);
+
+    campuses = campuses.map(campus => {
+      return {
+        id: campus.id,
+        name: campus.mailing_city,
+        courses: campus.courses.map(course => {
+          return {
+            id: course.id,
+            name: course.name
+          };
+        })
+      };
+    });
+
+    const reviews = schoolData.reviews.map(review => {
+      return {
+        id: review.data,
+        body: review.body,
+        reviewer_name: review.reviewer_name,
+        overall_experience_rating: review.overall_experience_rating,
+        course_curriculum_rating: review.course_curriculum_rating,
+        course_instructors_rating: review.course_instructors_rating,
+        school_job_assistance_rating: review.school_job_assistance_rating,
+        created_at: review.created_at
+      };
+    });
+
+    school.campuses = campuses;
+    school.reviews = reviews;
+    school.contact = {
+      name: schoolData.contact.name,
+      email: schoolData.contact.email
+    };
 
     return school;
   }
