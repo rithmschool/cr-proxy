@@ -48,7 +48,6 @@ class School {
   static async get(id) {
     let schoolData = await CourseReportAPI.getSchool(id);
     const {
-      id,
       avg_review_rating,
       slug,
       name,
@@ -68,7 +67,7 @@ class School {
     let aboutText = stripHTML(about);
 
     const school = {
-      id,
+      id: schoolData.school.id,
       avg_review_rating,
       slug,
       name,
@@ -86,6 +85,7 @@ class School {
 
     let campuses = JSON.parse(schoolData.campuses);
 
+    console.log(campuses);
     campuses = campuses.reduce((acc, campus) => {
       return {
         ...acc,
