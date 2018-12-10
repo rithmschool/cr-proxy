@@ -47,7 +47,6 @@ class School {
 
   static async get(id) {
     let schoolData = await CourseReportAPI.getSchool(id);
-
     const {
       avg_review_rating,
       slug,
@@ -67,23 +66,27 @@ class School {
     // parse about and replace here
     let aboutText = stripHTML(about);
 
-    return {
+    const school = {
       avg_review_rating,
       slug,
-      id: schoolData.school.id,
       name,
       email,
       website,
       about: aboutText,
       meta_description,
       review_count,
+      banners,
       twitter,
       facebook,
       blog,
-      github,
-      logo_url: schoolData.logo,
-      banners,
+      github
     };
+
+    school.campuses = JSON.parse(schoolData.campuses);
+    school.reviews = schoolData.reviews;
+    school.contact = schoolData.contact;
+
+    return school;
   }
 }
 
