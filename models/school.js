@@ -1,5 +1,6 @@
-const { stripHTML } = require('../helpers/htmlParsers');
+const {stripHTML} = require('../helpers/htmlParsers');
 const CourseReportAPI = require('../helpers/CourseReportAPI');
+const client = require('../server.js').client;
 
 class School {
   constructor({
@@ -9,7 +10,7 @@ class School {
     logo_url,
     rating,
     reviewCount,
-    description
+    description,
   }) {
     this.name = name;
     this.id = id;
@@ -21,11 +22,16 @@ class School {
   }
 
   static async getAll() {
+    if (await client.existsAsync('schools')) {
+      // get from store and return
+      return JSON.parse(await client.getAsync('schools'));
+    }
+
     let schools = await CourseReportAPI.getSchools();
     let schoolsParsed = JSON.parse(schools);
 
     const updatedSchools = schoolsParsed.map(school => {
-      let updatedSchool = { ...school };
+      let updatedSchool = {...school};
       let cities = school.cities.map(city => {
         return city.name;
       });
@@ -42,7 +48,11 @@ class School {
       return updatedSchool;
     });
 
-    return updatedSchools;
+    console.log('client:', client);
+    // store updatedSchools to redis
+    await client.setAsync('schools', JSON.stringify(updatedSchools));
+
+    return JSON.parse(await client.getAsync('schools'));
   }
 
   static async get(id) {
@@ -60,7 +70,7 @@ class School {
       twitter,
       facebook,
       blog,
-      github
+      github,
     } = schoolData.school;
 
     // parse about and replace here
@@ -80,7 +90,7 @@ class School {
       twitter,
       facebook,
       blog,
-      github
+      github,
     };
 
     let campuses = JSON.parse(schoolData.campuses);
@@ -94,10 +104,10 @@ class School {
           courses: campus.courses.map(course => {
             return {
               id: course.id,
-              name: course.name
+              name: course.name,
             };
-          })
-        }
+          }),
+        },
       };
     }, {});
 
@@ -110,7 +120,7 @@ class School {
         course_curriculum_rating: review.course_curriculum_rating,
         course_instructors_rating: review.course_instructors_rating,
         school_job_assistance_rating: review.school_job_assistance_rating,
-        created_at: review.created_at
+        created_at: review.created_at,
       };
     });
 
@@ -120,7 +130,7 @@ class School {
     if (schoolData.contact) {
       school.contact = {
         name: schoolData.contact.name,
-        email: schoolData.contact.email
+        email: schoolData.contact.email,
       };
     }
 
