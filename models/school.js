@@ -1,5 +1,6 @@
 const { stripHTML } = require('../helpers/htmlParsers');
 const CourseReportAPI = require('../helpers/CourseReportAPI');
+const client = require('../server.js').client;
 
 class School {
   constructor({
@@ -21,6 +22,14 @@ class School {
   }
 
   static async getAll() {
+    if (!(await client.existsAsync('schools'))) {
+      // get from store and return
+      await School.syncToRedis();
+    }
+    return JSON.parse(await client.getAsync('schools'));
+  }
+
+  static async syncToRedis() {
     let schools = await CourseReportAPI.getSchools();
     let schoolsParsed = JSON.parse(schools);
 
@@ -42,7 +51,8 @@ class School {
       return updatedSchool;
     });
 
-    return updatedSchools;
+    // store updatedSchools to redis
+    await client.setAsync('schools', JSON.stringify(updatedSchools));
   }
 
   static async get(id) {
