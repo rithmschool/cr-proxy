@@ -1,7 +1,11 @@
 function stripHTML(str) {
   let htmlCopy = str.slice();
   let justText = htmlCopy.replace(/<[^>]*>/g, '');
-  return justText;
+  // lets trim escape characters off the front only
+  let trimmedHead = justText.replace(/^\s+/, '');
+  // now let's remove all \t
+  const finalText = trimmedHead.replace(/\t/g, '');
+  return finalText;
 }
 
 function getHeaderImg(str) {

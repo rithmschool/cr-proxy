@@ -49,6 +49,12 @@ class CourseReportAPI {
     console.log('posts response', res);
     return res.posts;
   }
+
+  /** get a details for a single post */
+  static async getPost(post_id) {
+    const res = await this.request(`/blog/${post_id}`);
+    return res;
+  }
 }
 
 module.exports = CourseReportAPI;

@@ -47,7 +47,6 @@ class School {
 
   static async get(id) {
     let schoolData = await CourseReportAPI.getSchool(id);
-
     const {
       avg_review_rating,
       slug,
@@ -67,23 +66,65 @@ class School {
     // parse about and replace here
     let aboutText = stripHTML(about);
 
-    return {
+    const school = {
+      id: schoolData.school.id,
       avg_review_rating,
       slug,
-      id: schoolData.school.id,
       name,
       email,
       website,
       about: aboutText,
       meta_description,
       review_count,
+      banners,
       twitter,
       facebook,
       blog,
-      github,
-      logo_url: schoolData.logo,
-      banners,
+      github
     };
+
+    let campuses = JSON.parse(schoolData.campuses);
+
+    campuses = campuses.reduce((acc, campus) => {
+      return {
+        ...acc,
+        [campus.id]: {
+          id: campus.id,
+          name: campus.mailing_city,
+          courses: campus.courses.map(course => {
+            return {
+              id: course.id,
+              name: course.name
+            };
+          })
+        }
+      };
+    }, {});
+
+    const reviews = schoolData.reviews.map(review => {
+      return {
+        id: review.id,
+        body: stripHTML(review.body),
+        reviewer_name: review.reviewer_name,
+        overall_experience_rating: review.overall_experience_rating,
+        course_curriculum_rating: review.course_curriculum_rating,
+        course_instructors_rating: review.course_instructors_rating,
+        school_job_assistance_rating: review.school_job_assistance_rating,
+        created_at: review.created_at
+      };
+    });
+
+    school.logo = schoolData.logo;
+    school.campuses = campuses;
+    school.reviews = reviews;
+    if (schoolData.contact) {
+      school.contact = {
+        name: schoolData.contact.name,
+        email: schoolData.contact.email
+      };
+    }
+
+    return school;
   }
 }
 

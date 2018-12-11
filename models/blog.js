@@ -6,21 +6,41 @@ class Blog {
     this.posts = posts || [];
   }
 
-  static async getPosts(pageNum = 1) {
+  static async getAll(pageNum = 1) {
     let posts = await CourseReportAPI.getPosts();
     let postsParsed = JSON.parse(posts);
     // get all images out
     let updatedPosts = postsParsed.map(post => {
       //pull out header image from about
       let header_url = getHeaderImg(post.body);
-      let body = stripHTML(post.body);
 
-      let updatedPost = { ...post };
-      updatedPost.body = body;
+      const { id, title, post_author, created_at } = post;
+      const updatedPost = {};
+      updatedPost.id = id;
+      updatedPost.title = title;
+      updatedPost.created_at = created_at;
       updatedPost.header_url = header_url;
+      updatedPost.author = `${post_author.first_name} ${post_author.last_name}`;
       return updatedPost;
-    })
-    return new Blog(updatedPosts.map(post => new Post(post)));
+    });
+    return updatedPosts;
+  }
+
+  static async get(post_id) {
+    let postData = await CourseReportAPI.getPost(post_id);
+
+    // get image out and strip html from body
+    let post = JSON.parse(postData.post);
+    let header_url = getHeaderImg(post.body);
+    let body = stripHTML(post.body);
+    post.body = body;
+    post.header_url = header_url;
+    post.author = `${post.post_author.first_name} ${
+      post.post_author.last_name
+    }`;
+    delete post.post_author;
+
+    return new Post(post);
   }
 }
 
@@ -39,8 +59,8 @@ class Post {
     sponsorship_expire,
     image_id,
     card_info_id,
-    post_author,
-    header_url,
+    author,
+    header_url
   }) {
     this.id = id;
     this.title = title;
@@ -55,7 +75,7 @@ class Post {
     this.sponsorship_expire = sponsorship_expire;
     this.image_id = image_id;
     this.card_info_id = card_info_id;
-    this.post_author = post_author;
+    this.author = author;
     this.header_url = header_url;
   }
 }
