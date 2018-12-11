@@ -4,7 +4,7 @@ const bluebird = require('bluebird');
 bluebird.promisifyAll(redis);
 
 // connect to Redis
-const client =  redis.createClient();
+const client = redis.createClient();
 
 module.exports.client = client;
 
@@ -14,10 +14,9 @@ const { PORT } = require('./config');
 client.on('connect', () => {
   console.log('connected to redis!');
 });
-client.on('error', (err) => {
+client.on('error', err => {
   console.log(`Error: ${err}`);
-})
-
+});
 
 app.listen(PORT, function() {
   console.log(`Server starting on port ${PORT}!`);

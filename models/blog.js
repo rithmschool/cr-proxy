@@ -1,16 +1,32 @@
 const CourseReportAPI = require('../helpers/CourseReportAPI');
 const { getHeaderImg, stripHTML } = require('../helpers/htmlParsers');
+const client = require('../server.js').client;
 
 class Blog {
   constructor(posts) {
     this.posts = posts || [];
   }
 
-  static async getAll(pageNum = 1) {
-    let posts = await CourseReportAPI.getPosts();
-    let postsParsed = JSON.parse(posts);
+  static async getAll() {
+    if (!(await client.existsAsync('posts'))) {
+      await Blog.syncToRedis();
+    }
+
+    return JSON.parse(await client.getAsync('posts'));
+  }
+
+  static async syncToRedis() {
+    let postsAccumulate = [];
+    let postsRailsResponse;
+    let pageNum = 1;
+    while (postsRailsResponse !== '[]') {
+      postsRailsResponse = await CourseReportAPI.getPosts(pageNum);
+      postsAccumulate = [...postsAccumulate, ...JSON.parse(postsRailsResponse)];
+      pageNum++;
+    }
+
     // get all images out
-    let updatedPosts = postsParsed.map(post => {
+    let updatedPosts = postsAccumulate.map(post => {
       //pull out header image from about
       let header_url = getHeaderImg(post.body);
 
@@ -23,7 +39,9 @@ class Blog {
       updatedPost.author = `${post_author.first_name} ${post_author.last_name}`;
       return updatedPost;
     });
-    return updatedPosts;
+
+    // store updatedPosts to redis
+    await client.setAsync('posts', JSON.stringify(updatedPosts));
   }
 
   static async get(post_id) {
