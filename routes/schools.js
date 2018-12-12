@@ -8,8 +8,7 @@ const School = require('../models/school');
  */
 router.get('/', async function(req, res, next) {
   try {
-    let schools = await School.getAll();
-    console.log(schools);
+    let schools = await School.getAll(req.query.page);
     return res.json({
       schools
     })
@@ -25,7 +24,6 @@ router.get('/', async function(req, res, next) {
 router.get('/:id', async function(req, res, next) {
   try {
     let school = await School.get(req.params.id);
-    console.log(school);
     return res.json({
       school
     })

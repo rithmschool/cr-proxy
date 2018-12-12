@@ -21,12 +21,13 @@ class School {
     this.description = description;
   }
 
-  static async getAll() {
+  static async getAll(pageNum) {
     if (!(await client.existsAsync('schools'))) {
       // get from store and return
       await School.syncToRedis();
     }
-    return JSON.parse(await client.getAsync('schools'));
+    const schools = JSON.parse(await client.getAsync('schools'));
+    return schools.slice(((pageNum-1)*20), pageNum*20);
   }
 
   static async syncToRedis() {
