@@ -1,24 +1,40 @@
 const CourseReportAPI = require('../helpers/CourseReportAPI');
 const {getHeaderImg, stripHTML} = require('../helpers/htmlParsers');
 const client = require('../server.js').client;
+const Fuse = require('fuse.js');
 
 class Blog {
   constructor(posts) {
     this.posts = posts || [];
   }
 
-  static async getAll(pageNum) {
-    console.log('pageNum: ', pageNum);
-    if (!(await client.existsAsync('posts-1'))) {
+  static async getAll({page, search}) {
+    if (!(await client.existsAsync('posts'))) {
       await Blog.syncToRedis();
-    } else if (!(await client.existsAsync(`posts-${pageNum}`))) {
-      return [];
     }
-    return JSON.parse(await client.getAsync(`posts-${pageNum}`))
-  } 
+    const posts = JSON.parse(await client.getAsync(`posts`));
+    if (search === undefined) {
+      return posts.slice((page - 1) * 20, page * 20);
+    }
+    // search exists so lets return search results
+    const options = {
+        shouldSort: true,
+        threshold: 0.4,
+        location: 0,
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 4,
+      keys: [
+          "title"
+      ]
+    };
+    const fuse = new Fuse(posts, options);
+    return fuse.search(search)
+  }
 
   static async syncToRedis() {
     let postsRailsResponse;
+    let postsAccumulate = [];
     let pageNum = 1;
     while (postsRailsResponse !== '[]') {
       postsRailsResponse = await CourseReportAPI.getPosts(pageNum);
@@ -39,10 +55,10 @@ class Blog {
         }`;
         return updatedPost;
       });
-      // store updatedPosts to redis
-      await client.setAsync(`posts-${pageNum}`, JSON.stringify(updatedPosts));
+      postsAccumulate.push(updatedPosts);
       pageNum++;
     }
+    await client.setAsync(`posts`, JSON.stringify(postsAccumulate));
   }
 
   static async get(post_id) {
