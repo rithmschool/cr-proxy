@@ -3,7 +3,7 @@ const router = new express.Router();
 const School = require('../models/school');
 
 /**
- * GET /schools 
+ * GET /schools
  * returns list of schools
  */
 router.get('/', async function(req, res, next) {
@@ -11,14 +11,14 @@ router.get('/', async function(req, res, next) {
     let schools = await School.getAll(req.query.page);
     return res.json({
       schools
-    })
+    });
   } catch (err) {
     return next(err);
   }
 });
 
 /**
- * GET /school/:id
+ * GET /schools/:id
  * return details about one school
  */
 router.get('/:id', async function(req, res, next) {
@@ -26,10 +26,25 @@ router.get('/:id', async function(req, res, next) {
     let school = await School.get(req.params.id);
     return res.json({
       school
-    })
+    });
   } catch (err) {
     return next(err);
   }
-})
+});
+
+/**
+ * GET /schools/featured
+ * return details about featured schools
+ */
+router.get('/sponsored', async function(req, res, next) {
+  try {
+    let featuredSchools = await School.getFeatured();
+    return res.json({
+      schools: featuredSchools
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
 
 module.exports = router;

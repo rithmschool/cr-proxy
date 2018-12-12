@@ -29,7 +29,7 @@ class CourseReportAPI {
   /** get a list of schools */
   static async getSchools() {
     const res = await this.request(`/schools`);
-    return res.schools;
+    return res;
   }
 
   /** get a details for a single school */
