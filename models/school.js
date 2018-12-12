@@ -42,8 +42,8 @@ class School {
     let schoolsData = await CourseReportAPI.getSchools();
     let schoolsParsed = JSON.parse(schoolsData.schools);
     let featuredSchoolsParsed = JSON.parse(schoolsData.featured_schools);
-    let schools = School._cleanSchoolData(schoolsParsed);
-    let featuredSchools = School._cleanSchoolData(featuredSchoolsParsed);
+    let schools = School._cleanData(schoolsParsed);
+    let featuredSchools = School._cleanData(featuredSchoolsParsed);
 
     // store schools and featured schools to redis
     console.log('schools!', schools);
@@ -53,7 +53,7 @@ class School {
     await client.setAsync('featured_schools', JSON.stringify(featuredSchools));
   }
 
-  static _cleanSchoolData(schoolsParsed) {
+  static _cleanData(schoolsParsed) {
     const updatedSchools = schoolsParsed.map(school => {
       let updatedSchool = { ...school };
       let cities = school.cities.map(city => {
