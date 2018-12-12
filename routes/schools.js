@@ -8,7 +8,7 @@ const School = require('../models/school');
  */
 router.get('/', async function(req, res, next) {
   try {
-    let schools = await School.getAll(req.query.page);
+    let schools = await School.getAll(req.query);
     return res.json({
       schools
     })

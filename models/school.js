@@ -1,6 +1,7 @@
 const { stripHTML } = require('../helpers/htmlParsers');
 const CourseReportAPI = require('../helpers/CourseReportAPI');
 const client = require('../server.js').client;
+const Fuse = require('fuse.js');
 
 class School {
   constructor({
@@ -21,13 +22,33 @@ class School {
     this.description = description;
   }
 
-  static async getAll(pageNum) {
+  static async getAll({pageNum, search}) {
     if (!(await client.existsAsync('schools'))) {
       // get from store and return
       await School.syncToRedis();
     }
+    console.log(pageNum, search);
     const schools = JSON.parse(await client.getAsync('schools'));
-    return schools.slice(((pageNum-1)*20), pageNum*20);
+    if(search === undefined) {
+      return schools.slice(((pageNum-1)*20), pageNum*20);
+    } 
+    const options = {
+      shouldSort: true,
+      findAllMatches: true,
+      includeScore: true,
+      includeMatches: true,
+      threshold: 0.,
+      location: 0,
+      distance: 100,
+      maxPatternLength: 32,
+      minMatchCharLength: 3,
+      keys: [
+        "name",
+        "cities"
+      ]
+    };
+    const fuse = new Fuse(schools, options);
+    return fuse.search(search);
   }
 
   static async syncToRedis() {
