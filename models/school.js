@@ -31,11 +31,11 @@ class School {
   }
 
   static async getFeatured() {
-    if (!(await client.existsAsync('featuredSchools'))) {
+    if (!(await client.existsAsync('featured_schools'))) {
       // get from store and return
       await School.syncToRedis();
     }
-    return JSON.parse(await client.getAsync('featuredSchools'));
+    return JSON.parse(await client.getAsync('featured_schools'));
   }
 
   static async syncToRedis() {
@@ -46,11 +46,14 @@ class School {
     let featuredSchools = School._cleanSchoolData(featuredSchoolsParsed);
 
     // store schools and featured schools to redis
+    console.log('schools!', schools);
+    let schoolJSON = JSON.stringify(schools);
+    console.log(schoolJSON)
     await client.setAsync('schools', JSON.stringify(schools));
-    await client.setAsync('featuredSchools', JSON.stringify(featuredSchools));
+    await client.setAsync('featured_schools', JSON.stringify(featuredSchools));
   }
 
-  static async _cleanSchoolData(schoolsParsed) {
+  static _cleanSchoolData(schoolsParsed) {
     const updatedSchools = schoolsParsed.map(school => {
       let updatedSchool = { ...school };
       let cities = school.cities.map(city => {
