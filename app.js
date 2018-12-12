@@ -19,7 +19,11 @@ app.use(morgan('tiny'));
 
 app.use(cors());
 
+<<<<<<< HEAD
 schoolRouter.use('/:id/contact', contactRouter);
+=======
+app.use('/contact', contactRouter)
+>>>>>>> 2d668e1e5776dc4c07862a01179a377e145bc4ee
 app.use('/schools', schoolRouter);
 app.use('/blog', blogRouter);
 app.use('/sync', syncRouter);

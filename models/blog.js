@@ -1,5 +1,5 @@
 const CourseReportAPI = require('../helpers/CourseReportAPI');
-const { getHeaderImg, stripHTML } = require('../helpers/htmlParsers');
+const {getHeaderImg, stripHTML} = require('../helpers/htmlParsers');
 const client = require('../server.js').client;
 
 class Blog {
@@ -7,41 +7,42 @@ class Blog {
     this.posts = posts || [];
   }
 
-  static async getAll() {
-    if (!(await client.existsAsync('posts'))) {
+  static async getAll(pageNum) {
+    console.log('pageNum: ', pageNum);
+    if (!(await client.existsAsync('posts-1'))) {
       await Blog.syncToRedis();
+    } else if (!(await client.existsAsync(`posts-${pageNum}`))) {
+      return [];
     }
-
-    return JSON.parse(await client.getAsync('posts'));
-  }
+    return JSON.parse(await client.getAsync(`posts-${pageNum}`))
+  } 
 
   static async syncToRedis() {
-    let postsAccumulate = [];
     let postsRailsResponse;
     let pageNum = 1;
     while (postsRailsResponse !== '[]') {
       postsRailsResponse = await CourseReportAPI.getPosts(pageNum);
-      postsAccumulate = [...postsAccumulate, ...JSON.parse(postsRailsResponse)];
+      const posts = JSON.parse(postsRailsResponse);
+      // get all images out
+      let updatedPosts = posts.map(post => {
+        //pull out header image from about
+        let header_url = getHeaderImg(post.body);
+
+        const {id, title, post_author, created_at} = post;
+        const updatedPost = {};
+        updatedPost.id = id;
+        updatedPost.title = title;
+        updatedPost.created_at = created_at;
+        updatedPost.header_url = header_url;
+        updatedPost.author = `${post_author.first_name} ${
+          post_author.last_name
+        }`;
+        return updatedPost;
+      });
+      // store updatedPosts to redis
+      await client.setAsync(`posts-${pageNum}`, JSON.stringify(updatedPosts));
       pageNum++;
     }
-
-    // get all images out
-    let updatedPosts = postsAccumulate.map(post => {
-      //pull out header image from about
-      let header_url = getHeaderImg(post.body);
-
-      const { id, title, post_author, created_at } = post;
-      const updatedPost = {};
-      updatedPost.id = id;
-      updatedPost.title = title;
-      updatedPost.created_at = created_at;
-      updatedPost.header_url = header_url;
-      updatedPost.author = `${post_author.first_name} ${post_author.last_name}`;
-      return updatedPost;
-    });
-
-    // store updatedPosts to redis
-    await client.setAsync('posts', JSON.stringify(updatedPosts));
   }
 
   static async get(post_id) {
@@ -78,7 +79,7 @@ class Post {
     image_id,
     card_info_id,
     author,
-    header_url
+    header_url,
   }) {
     this.id = id;
     this.title = title;
