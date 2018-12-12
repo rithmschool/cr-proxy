@@ -22,15 +22,15 @@ class School {
     this.description = description;
   }
 
-  static async getAll({ pageNum, search }) {
+  static async getAll({ page, search }) {
     if (!(await client.existsAsync('schools'))) {
       // get from store and return
       await School.syncToRedis();
     }
-    console.log(pageNum, search);
+    console.log(page, search);
     const schools = JSON.parse(await client.getAsync('schools'));
     if (search === undefined) {
-      return schools.slice(((pageNum - 1) * 20), pageNum * 20);
+      return schools.slice(((page - 1) * 20), page * 20);
     }
     const options = {
       shouldSort: true,
