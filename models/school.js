@@ -58,7 +58,7 @@ class School {
     const updatedSchools = schoolsParsed.map(school => {
       let updatedSchool = { ...school };
       let cities = school.cities.map(city => {
-        return city.name;
+        return {name: city.name, lat: city.latitude, long: city.longitude};
       });
       updatedSchool.cities = cities;
 
