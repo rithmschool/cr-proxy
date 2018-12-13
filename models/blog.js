@@ -55,7 +55,7 @@ class Blog {
         }`;
         return updatedPost;
       });
-      postsAccumulate.push(updatedPosts);
+      postsAccumulate.push(...updatedPosts);
       pageNum++;
     }
     await client.setAsync(`posts`, JSON.stringify(postsAccumulate));
