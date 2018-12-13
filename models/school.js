@@ -22,13 +22,17 @@ class School {
     this.description = description;
   }
 
-  static async getAll({ page, search }) {
+  static async getAll({ page, search, loc }) {
     if (!(await client.existsAsync('schools'))) {
       // get from store and return
       await School.syncToRedis();
     }
-    console.log(page, search);
-    const schools = JSON.parse(await client.getAsync('schools'));
+    let schools = JSON.parse(await client.getAsync('schools'));
+    if (loc !== undefined) {
+      const locArr = loc.split(",");
+      const currLoc = {lat: +locArr[0], long: +locArr[1]};
+      schools = this._sortByDist(currLoc, schools);
+    }
     if (search === undefined) {
       return schools.slice(((page - 1) * 20), page * 20);
     }
@@ -90,6 +94,26 @@ class School {
     });
 
     return updatedSchools;
+  }
+
+  static _sortByDist(currLoc, schools) {
+    for (const school of schools) {
+      let shortestDist = Infinity;
+      school.cities.forEach(city => {
+        const {lat, long} = city;
+        let dist = this._getDist(currLoc, { lat, long });
+        if (dist < Infinity) shortestDist = dist;
+      })
+      school.distance = shortestDist;
+    }
+    return schools.sort((a, b) => a.distance - b.distance);
+  }
+
+  static _getDist(currLoc, cityLoc) {
+    console.log(currLoc);
+    const long = Math.abs(currLoc.long - +cityLoc.long);
+    const lat = Math.abs(currLoc.lat - +cityLoc.lat);
+    return Math.sqrt((long ** 2) + (lat ** 2));
   }
 
   static async get(id) {
