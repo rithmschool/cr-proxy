@@ -1,6 +1,7 @@
 const { stripHTML } = require('../helpers/htmlParsers');
 const CourseReportAPI = require('../helpers/CourseReportAPI');
 const client = require('../server.js').client;
+const Fuse = require('fuse.js');
 
 class School {
   constructor({
@@ -21,22 +22,63 @@ class School {
     this.description = description;
   }
 
-  static async getAll() {
+  static async getAll({ page, search, loc }) {
     if (!(await client.existsAsync('schools'))) {
       // get from store and return
       await School.syncToRedis();
     }
-    return JSON.parse(await client.getAsync('schools'));
+    let schools = JSON.parse(await client.getAsync('schools'));
+    if (loc !== undefined) {
+      const locArr = loc.split(",");
+      const currLoc = {lat: +locArr[0], long: +locArr[1]};
+      schools = this._sortByDist(currLoc, schools);
+    }
+    if (search === undefined) {
+      return schools.slice(((page - 1) * 20), page * 20);
+    }
+    const options = {
+      shouldSort: true,
+      findAllMatches: true,
+      threshold: 0.5,
+      location: 0,
+      distance: 100,
+      maxPatternLength: 32,
+      minMatchCharLength: 3,
+      keys: [
+        "name",
+        "cities"
+      ]
+    };
+    const fuse = new Fuse(schools, options);
+    return fuse.search(search);
+  }
+
+  static async getFeatured() {
+    if (!(await client.existsAsync('featured_schools'))) {
+      // get from store and return
+      await School.syncToRedis();
+    }
+    return JSON.parse(await client.getAsync('featured_schools'));
   }
 
   static async syncToRedis() {
-    let schools = await CourseReportAPI.getSchools();
-    let schoolsParsed = JSON.parse(schools);
+    let schoolsData = await CourseReportAPI.getSchools();
+    let schoolsParsed = JSON.parse(schoolsData.schools);
+    let featuredSchoolsParsed = JSON.parse(schoolsData.featured_schools);
+    let schools = School._cleanData(schoolsParsed);
+    let featuredSchools = School._cleanData(featuredSchoolsParsed);
 
+    // store schools and featured schools to redis
+    let schoolJSON = JSON.stringify(schools);
+    await client.setAsync('schools', JSON.stringify(schools));
+    await client.setAsync('featured_schools', JSON.stringify(featuredSchools));
+  }
+
+  static _cleanData(schoolsParsed) {
     const updatedSchools = schoolsParsed.map(school => {
       let updatedSchool = { ...school };
       let cities = school.cities.map(city => {
-        return city.name;
+        return { name: city.name, lat: city.latitude, long: city.longitude };
       });
       updatedSchool.cities = cities;
 
@@ -51,8 +93,27 @@ class School {
       return updatedSchool;
     });
 
-    // store updatedSchools to redis
-    await client.setAsync('schools', JSON.stringify(updatedSchools));
+    return updatedSchools;
+  }
+
+  static _sortByDist(currLoc, schools) {
+    for (const school of schools) {
+      let shortestDist = Infinity;
+      school.cities.forEach(city => {
+        const {lat, long} = city;
+        let dist = this._getDist(currLoc, { lat, long });
+        if (dist < Infinity) shortestDist = dist;
+      })
+      school.distance = shortestDist;
+    }
+    return schools.sort((a, b) => a.distance - b.distance);
+  }
+
+  static _getDist(currLoc, cityLoc) {
+    console.log(currLoc);
+    const long = Math.abs(currLoc.long - +cityLoc.long);
+    const lat = Math.abs(currLoc.lat - +cityLoc.lat);
+    return Math.sqrt((long ** 2) + (lat ** 2));
   }
 
   static async get(id) {
