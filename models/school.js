@@ -68,8 +68,6 @@ class School {
     let schools = School._cleanData(schoolsParsed);
     let featuredSchools = School._cleanData(featuredSchoolsParsed);
 
-    // store schools and featured schools to redis
-    let schoolJSON = JSON.stringify(schools);
     await client.setAsync('schools', JSON.stringify(schools));
     await client.setAsync('featured_schools', JSON.stringify(featuredSchools));
   }

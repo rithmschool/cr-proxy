@@ -22,7 +22,6 @@ router.get('/', async function(req, res, next) {
  * return details about featured schools
  */
 router.get('/featured', async function(req, res, next) {
-  console.log('GOT TO ROUTE')
   try {
     let featuredSchools = await School.getFeatured();
     return res.json({
