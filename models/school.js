@@ -1,7 +1,12 @@
-const { stripHTML } = require('../helpers/htmlParsers');
+const {stripHTML} = require('../helpers/htmlParsers');
 const CourseReportAPI = require('../helpers/CourseReportAPI');
 const client = require('../server.js').client;
 const Fuse = require('fuse.js');
+const schoolsJSONFromFile = require('../json/schools.json');
+const featuredSchoolsJSONFromFile = require('../json/featuredSchools.json');
+const school454 = require('../json/school-454.json');
+const school40 = require('../json/school-40.json');
+const school315 = require('../json/school-315.json');
 
 class School {
   constructor({
@@ -11,7 +16,7 @@ class School {
     logo_url,
     rating,
     reviewCount,
-    description
+    description,
   }) {
     this.name = name;
     this.id = id;
@@ -22,19 +27,19 @@ class School {
     this.description = description;
   }
 
-  static async getAll({ page, search, loc }) {
+  static async getAll({page, search, loc}) {
     if (!(await client.existsAsync('schools'))) {
       // get from store and return
       await School.syncToRedis();
     }
     let schools = JSON.parse(await client.getAsync('schools'));
     if (loc !== undefined) {
-      const locArr = loc.split(",");
+      const locArr = loc.split(',');
       const currLoc = {lat: +locArr[0], long: +locArr[1]};
       schools = this._sortByDist(currLoc, schools);
     }
     if (search === undefined) {
-      return schools.slice(((page - 1) * 20), page * 20);
+      return schools.slice((page - 1) * 20, page * 20);
     }
     const options = {
       shouldSort: true,
@@ -44,10 +49,7 @@ class School {
       distance: 100,
       maxPatternLength: 32,
       minMatchCharLength: 3,
-      keys: [
-        "name",
-        "cities"
-      ]
+      keys: ['name', 'cities'],
     };
     const fuse = new Fuse(schools, options);
     return fuse.search(search);
@@ -62,21 +64,33 @@ class School {
   }
 
   static async syncToRedis() {
-    let schoolsData = await CourseReportAPI.getSchools();
-    let schoolsParsed = JSON.parse(schoolsData.schools);
-    let featuredSchoolsParsed = JSON.parse(schoolsData.featured_schools);
-    let schools = School._cleanData(schoolsParsed);
-    let featuredSchools = School._cleanData(featuredSchoolsParsed);
+    // // NOTE: UNCOMMENT THE NEXT 9 LINES IN REAL PRODUCTION MODE
 
-    await client.setAsync('schools', JSON.stringify(schools));
-    await client.setAsync('featured_schools', JSON.stringify(featuredSchools));
+    // let schoolsData = await CourseReportAPI.getSchools();
+    // let schoolsParsed = JSON.parse(schoolsData.schools);
+    // let featuredSchoolsParsed = JSON.parse(schoolsData.featured_schools);
+    // let schools = School._cleanData(schoolsParsed);
+    // let featuredSchools = School._cleanData(featuredSchoolsParsed);
+
+    // await client.setAsync('schools', JSON.stringify(schools));
+    // await client.setAsync('featured_schools', JSON.stringify(featuredSchools));
+
+    // NOTE: SECTION JUST FOR PROXY TESTING ON HEROKU
+
+    // const schools = JSON.parse(schoolsJSONFromFile);
+
+    await client.setAsync('schools', JSON.stringify(schoolsJSONFromFile.schools));
+    await client.setAsync('featured_schools', JSON.stringify(featuredSchoolsJSONFromFile.schools));
+    await client.setAsync('school-454', JSON.stringify(school454.school));
+    await client.setAsync('school-315', JSON.stringify(school315.school));
+    await client.setAsync('school-40', JSON.stringify(school40.school));
   }
 
   static _cleanData(schoolsParsed) {
     const updatedSchools = schoolsParsed.map(school => {
-      let updatedSchool = { ...school };
+      let updatedSchool = {...school};
       let cities = school.cities.map(city => {
-        return { name: city.name, lat: city.latitude, long: city.longitude };
+        return {name: city.name, lat: city.latitude, long: city.longitude};
       });
       updatedSchool.cities = cities;
 
@@ -99,9 +113,9 @@ class School {
       let shortestDist = Infinity;
       school.cities.forEach(city => {
         const {lat, long} = city;
-        let dist = this._getDist(currLoc, { lat, long });
+        let dist = this._getDist(currLoc, {lat, long});
         if (dist < Infinity) shortestDist = dist;
-      })
+      });
       school.distance = shortestDist;
     }
     return schools.sort((a, b) => a.distance - b.distance);
@@ -111,90 +125,97 @@ class School {
     console.log(currLoc);
     const long = Math.abs(currLoc.long - +cityLoc.long);
     const lat = Math.abs(currLoc.lat - +cityLoc.lat);
-    return Math.sqrt((long ** 2) + (lat ** 2));
+    return Math.sqrt(long ** 2 + lat ** 2);
   }
 
   static async get(id) {
-    let schoolData = await CourseReportAPI.getSchool(id);
-    console.log(schoolData);
-    const {
-      avg_review_rating,
-      slug,
-      name,
-      email,
-      website,
-      about,
-      meta_description,
-      review_count,
-      banners,
-      twitter,
-      facebook,
-      blog,
-      github
-    } = schoolData.school;
+    if (await client.existsAsync(`school-${id}`)) {
+      const school = JSON.parse(await client.getAsync(`school-${id}`));
+      return school;
+    } else {
+      let schools = JSON.parse(await client.getAsync('schools'));
+      let schoolData = await CourseReportAPI.getSchool(id);
+      console.log(schoolData);
+      const {
+        avg_review_rating,
+        slug,
+        name,
+        email,
+        website,
+        about,
+        meta_description,
+        review_count,
+        banners,
+        twitter,
+        facebook,
+        blog,
+        github,
+      } = schoolData.school;
 
-    // parse about and replace here
-    let aboutText = stripHTML(about);
+      // parse about and replace here
+      let aboutText = stripHTML(about);
 
-    const school = {
-      id: schoolData.school.id,
-      avg_review_rating,
-      slug,
-      name,
-      email,
-      website,
-      about: aboutText,
-      meta_description,
-      review_count,
-      banners,
-      twitter,
-      facebook,
-      blog,
-      github
-    };
-
-    let campuses = JSON.parse(schoolData.campuses);
-
-    campuses = campuses.reduce((acc, campus) => {
-      return {
-        ...acc,
-        [campus.id]: {
-          id: campus.id,
-          name: schoolData.cities.find((city)=>city.id===campus.city_id).name,
-          courses: campus.courses.map(course => {
-            return {
-              id: course.id,
-              name: course.name
-            };
-          })
-        }
+      const school = {
+        id: schoolData.school.id,
+        avg_review_rating,
+        slug,
+        name,
+        email,
+        website,
+        about: aboutText,
+        meta_description,
+        review_count,
+        banners,
+        twitter,
+        facebook,
+        blog,
+        github,
       };
-    }, {});
 
-    const reviews = schoolData.reviews.map(review => {
-      return {
-        id: review.id,
-        body: stripHTML(review.body),
-        reviewer_name: review.reviewer_name,
-        overall_experience_rating: review.overall_experience_rating,
-        course_curriculum_rating: review.course_curriculum_rating,
-        course_instructors_rating: review.course_instructors_rating,
-        school_job_assistance_rating: review.school_job_assistance_rating,
-        created_at: review.created_at
-      };
-    });
+      let campuses = JSON.parse(schoolData.campuses);
 
-    school.logo = schoolData.logo;
-    school.campuses = campuses;
-    school.reviews = reviews;
-    if (schoolData.contact) {
-      school.contact = {
-        name: schoolData.contact.name,
-        email: schoolData.contact.email
-      };
+      campuses = campuses.reduce((acc, campus) => {
+        return {
+          ...acc,
+          [campus.id]: {
+            id: campus.id,
+            name: schoolData.cities.find(city => city.id === campus.city_id)
+              .name,
+            courses: campus.courses.map(course => {
+              return {
+                id: course.id,
+                name: course.name,
+              };
+            }),
+          },
+        };
+      }, {});
+
+      const reviews = schoolData.reviews.map(review => {
+        return {
+          id: review.id,
+          body: stripHTML(review.body),
+          reviewer_name: review.reviewer_name,
+          overall_experience_rating: review.overall_experience_rating,
+          course_curriculum_rating: review.course_curriculum_rating,
+          course_instructors_rating: review.course_instructors_rating,
+          school_job_assistance_rating: review.school_job_assistance_rating,
+          created_at: review.created_at,
+        };
+      });
+
+      school.logo = schoolData.logo;
+      school.campuses = campuses;
+      school.reviews = reviews;
+      if (schoolData.contact) {
+        school.contact = {
+          name: schoolData.contact.name,
+          email: schoolData.contact.email,
+        };
+      }
+
+      return school;
     }
-
-    return school;
   }
 }
 

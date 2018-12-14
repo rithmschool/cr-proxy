@@ -2,6 +2,10 @@ const CourseReportAPI = require('../helpers/CourseReportAPI');
 const {getHeaderImg, stripHTML} = require('../helpers/htmlParsers');
 const client = require('../server.js').client;
 const Fuse = require('fuse.js');
+const blogsJSONFromFile = require('../json/blog.json');
+const post1120 = require('../json/post-1120.json');
+const post1119 = require('../json/post-1119.json');
+const post1117 = require('../json/post-1117.json');
 
 class Blog {
   constructor(posts) {
@@ -18,64 +22,76 @@ class Blog {
     }
     // search exists so lets return search results
     const options = {
-        shouldSort: true,
-        threshold: 0.4,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 4,
-      keys: [
-          "title"
-      ]
+      shouldSort: true,
+      threshold: 0.4,
+      location: 0,
+      distance: 100,
+      maxPatternLength: 32,
+      minMatchCharLength: 4,
+      keys: ['title'],
     };
     const fuse = new Fuse(posts, options);
-    return fuse.search(search)
+    return fuse.search(search);
   }
 
   static async syncToRedis() {
-    let postsRailsResponse;
-    let postsAccumulate = [];
-    let pageNum = 1;
-    while (postsRailsResponse !== '[]') {
-      postsRailsResponse = await CourseReportAPI.getPosts(pageNum);
-      const posts = JSON.parse(postsRailsResponse);
-      // get all images out
-      let updatedPosts = posts.map(post => {
-        //pull out header image from about
-        let header_url = getHeaderImg(post.body);
+    //// NOTE: UNCOMMENT THE NEXT 27 LINES IN REAL PRODUCTION
 
-        const {id, title, post_author, created_at} = post;
-        const updatedPost = {};
-        updatedPost.id = id;
-        updatedPost.title = title;
-        updatedPost.created_at = created_at;
-        updatedPost.header_url = header_url;
-        updatedPost.author = `${post_author.first_name} ${
-          post_author.last_name
-        }`;
-        return updatedPost;
-      });
-      postsAccumulate.push(...updatedPosts);
-      pageNum++;
-    }
-    await client.setAsync(`posts`, JSON.stringify(postsAccumulate));
+    //let postsRailsResponse;
+    //let postsAccumulate = [];
+    //let pageNum = 1;
+    //while (postsRailsResponse !== '[]') {
+    //  postsRailsResponse = await CourseReportAPI.getPosts(pageNum);
+    //  const posts = JSON.parse(postsRailsResponse);
+    //  // get all images out
+    //  let updatedPosts = posts.map(post => {
+    //    //pull out header image from about
+    //    let header_url = getHeaderImg(post.body);
+
+    //    const {id, title, post_author, created_at} = post;
+    //    const updatedPost = {};
+    //    updatedPost.id = id;
+    //    updatedPost.title = title;
+    //    updatedPost.created_at = created_at;
+    //    updatedPost.header_url = header_url;
+    //    updatedPost.author = `${post_author.first_name} ${
+    //      post_author.last_name
+    //    }`;
+    //    return updatedPost;
+    //  });
+    //  postsAccumulate.push(...updatedPosts);
+    //  pageNum++;
+    //}
+    //await client.setAsync(`posts`, JSON.stringify(postsAccumulate));
+
+    // NOTE: SECTION JUST FOR PROXY TESTING ON HEROKU
+
+    await client.setAsync('posts', JSON.stringify(blogsJSONFromFile.posts));
+    await client.setAsync('post-1120', JSON.stringify(post1120.post));
+    await client.setAsync('post-1119', JSON.stringify(post1119.post));
+    await client.setAsync('post-1117', JSON.stringify(post1117.post));
   }
 
   static async get(post_id) {
-    let postData = await CourseReportAPI.getPost(post_id);
+    if (await client.existsAsync(`post-${post_id}`)) {
+      const post = JSON.parse(await client.getAsync(`post-${post_id}`));
+      return post;
+    } else {
+      let postData = await CourseReportAPI.getPost(post_id);
 
-    // get image out and strip html from body
-    let post = JSON.parse(postData.post);
-    let header_url = getHeaderImg(post.body);
-    let body = stripHTML(post.body);
-    post.body = body;
-    post.header_url = header_url;
-    post.author = `${post.post_author.first_name} ${
-      post.post_author.last_name
-    }`;
-    delete post.post_author;
+      // get image out and strip html from body
+      let post = JSON.parse(postData.post);
+      let header_url = getHeaderImg(post.body);
+      let body = stripHTML(post.body);
+      post.body = body;
+      post.header_url = header_url;
+      post.author = `${post.post_author.first_name} ${
+        post.post_author.last_name
+      }`;
+      delete post.post_author;
 
-    return new Post(post);
+      return new Post(post);
+    }
   }
 }
 
