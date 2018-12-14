@@ -34,6 +34,7 @@ class School {
       schools = this._sortByDist(currLoc, schools);
     }
     if (search === undefined) {
+      //this controls pagination, for each page there are 20 schools.
       return schools.slice(((page - 1) * 20), page * 20);
     }
     const options = {
@@ -61,6 +62,7 @@ class School {
     return JSON.parse(await client.getAsync('featured_schools'));
   }
 
+  //this function must be run while the express server is up.  This synchs chache to the rails server.
   static async syncToRedis() {
     let schoolsData = await CourseReportAPI.getSchools();
     let schoolsParsed = JSON.parse(schoolsData.schools);

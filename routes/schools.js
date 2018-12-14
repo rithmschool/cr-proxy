@@ -5,6 +5,8 @@ const School = require('../models/school');
 /**
  * GET /schools
  * returns list of schools
+ * must include page query parameter to get results
+ * include search query parameter to get search results
  */
 router.get('/', async function(req, res, next) {
   try {
