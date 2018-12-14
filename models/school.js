@@ -118,6 +118,7 @@ class School {
 
   static async get(id) {
     let schoolData = await CourseReportAPI.getSchool(id);
+    console.log(schoolData);
     const {
       avg_review_rating,
       slug,
@@ -161,7 +162,7 @@ class School {
         ...acc,
         [campus.id]: {
           id: campus.id,
-          name: campus.mailing_city,
+          name: schoolData.cities.find((city)=>city.id===campus.city_id).name,
           courses: campus.courses.map(course => {
             return {
               id: course.id,

@@ -40,6 +40,7 @@ router.get('/featured', async function(req, res, next) {
 router.get('/:id', async function(req, res, next) {
   try {
     let school = await School.get(req.params.id);
+
     return res.json({
       school,
     });
