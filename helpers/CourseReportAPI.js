@@ -4,28 +4,23 @@ axios.defaults.headers.common['Accept'] = 'application/json';
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 class CourseReportAPI {
-  static async request(endpoint, params = {}, verb = "get") {
+  static async request(endpoint, params = {}, verb = 'get') {
     let q;
-    if (verb === "get") {
-      q = axios.get(
-        `${BASE_URL}${endpoint}`, { params: { ...params } });
-    } else if (verb === "post") {
-      q = axios.post(
-        `${BASE_URL}${endpoint}`, { ...params });
-    } else if (verb === "patch") {
-      q = axios.patch(
-        `${BASE_URL}${endpoint}`, { ...params });
-    }
-    else if (verb === "delete") {
-      q = axios.delete(
-        `${BASE_URL}${endpoint}`, { params: { ...params } });
+    if (verb === 'get') {
+      q = axios.get(`${BASE_URL}${endpoint}`, { params: { ...params } });
+    } else if (verb === 'post') {
+      q = axios.post(`${BASE_URL}${endpoint}`, { ...params });
+    } else if (verb === 'patch') {
+      q = axios.patch(`${BASE_URL}${endpoint}`, { ...params });
+    } else if (verb === 'delete') {
+      q = axios.delete(`${BASE_URL}${endpoint}`, { params: { ...params } });
     }
 
     try {
       let data = (await q).data;
       return data;
     } catch (err) {
-      console.error("API Error:", err.response);
+      console.error('API Error:', err.response);
       let message = err.response.data.message;
       throw Array.isArray(message) ? message : [message];
     }
@@ -34,7 +29,7 @@ class CourseReportAPI {
   /** get a list of schools */
   static async getSchools() {
     const res = await this.request(`/schools`);
-    return res.schools;
+    return res;
   }
 
   /** get a details for a single school */
@@ -44,9 +39,8 @@ class CourseReportAPI {
   }
 
   /** get a list of schools */
-  static async getPosts() {
-    const res = await this.request(`/blog`);
-    console.log('posts response', res);
+  static async getPosts(pageNum) {
+    const res = await this.request(`/blog`, { page: pageNum });
     return res.posts;
   }
 

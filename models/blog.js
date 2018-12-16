@@ -1,29 +1,64 @@
 const CourseReportAPI = require('../helpers/CourseReportAPI');
-const { getHeaderImg, stripHTML } = require('../helpers/htmlParsers');
+const {getHeaderImg, stripHTML} = require('../helpers/htmlParsers');
+const client = require('../server.js').client;
+const Fuse = require('fuse.js');
 
 class Blog {
   constructor(posts) {
     this.posts = posts || [];
   }
 
-  static async getAll(pageNum = 1) {
-    let posts = await CourseReportAPI.getPosts();
-    let postsParsed = JSON.parse(posts);
-    // get all images out
-    let updatedPosts = postsParsed.map(post => {
-      //pull out header image from about
-      let header_url = getHeaderImg(post.body);
+  static async getAll({page, search}) {
+    if (!(await client.existsAsync('posts'))) {
+      await Blog.syncToRedis();
+    }
+    const posts = JSON.parse(await client.getAsync(`posts`));
+    if (search === undefined) {
+      return posts.slice((page - 1) * 20, page * 20);
+    }
+    // search exists so lets return search results
+    const options = {
+        shouldSort: true,
+        threshold: 0.4,
+        location: 0,
+        distance: 100,
+        maxPatternLength: 32,
+        minMatchCharLength: 4,
+      keys: [
+          "title"
+      ]
+    };
+    const fuse = new Fuse(posts, options);
+    return fuse.search(search)
+  }
 
-      const { id, title, post_author, created_at } = post;
-      const updatedPost = {};
-      updatedPost.id = id;
-      updatedPost.title = title;
-      updatedPost.created_at = created_at;
-      updatedPost.header_url = header_url;
-      updatedPost.author = `${post_author.first_name} ${post_author.last_name}`;
-      return updatedPost;
-    });
-    return updatedPosts;
+  static async syncToRedis() {
+    let postsRailsResponse;
+    let postsAccumulate = [];
+    let pageNum = 1;
+    while (postsRailsResponse !== '[]') {
+      postsRailsResponse = await CourseReportAPI.getPosts(pageNum);
+      const posts = JSON.parse(postsRailsResponse);
+      // get all images out
+      let updatedPosts = posts.map(post => {
+        //pull out header image from about
+        let header_url = getHeaderImg(post.body);
+
+        const {id, title, post_author, created_at} = post;
+        const updatedPost = {};
+        updatedPost.id = id;
+        updatedPost.title = title;
+        updatedPost.created_at = created_at;
+        updatedPost.header_url = header_url;
+        updatedPost.author = `${post_author.first_name} ${
+          post_author.last_name
+        }`;
+        return updatedPost;
+      });
+      postsAccumulate.push(...updatedPosts);
+      pageNum++;
+    }
+    await client.setAsync(`posts`, JSON.stringify(postsAccumulate));
   }
 
   static async get(post_id) {
@@ -60,7 +95,7 @@ class Post {
     image_id,
     card_info_id,
     author,
-    header_url
+    header_url,
   }) {
     this.id = id;
     this.title = title;

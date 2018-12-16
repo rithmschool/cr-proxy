@@ -1,9 +1,9 @@
 const express = require('express');
-const router = new express.Router({mergeParams: true});
+const router = new express.Router();
 const Contact = require('../models/contact');
 
 //Post a contact
-router.post('/', async function(req, res, next) {
+router.post('/', async function (req, res, next) {
   try {
     const contactForm = await Contact.postContact(req.body);
     return res.json({ contactForm });

@@ -5,7 +5,7 @@ const Blog = require('../models/blog');
 //Get a blog list
 router.get('/', async function(req, res, next) {
   try {
-    const posts = await Blog.getAll();
+    const posts = await Blog.getAll(req.query);
     return res.json({ 
       posts 
     });
